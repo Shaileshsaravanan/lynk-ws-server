@@ -32,6 +32,16 @@ wss.on('connection', socket => {
       if (!users[userId]) users[userId] = new Set();
       users[userId].add(socket);
 
+      // Notify other devices with the same userId about this new connection
+      for (const s of users[userId]) {
+        if (s !== socket && s.readyState === WebSocket.OPEN) {
+          s.send(JSON.stringify({
+            type: 'user_connected',
+            userId
+          }));
+        }
+      }
+
       return;
     }
 
@@ -57,4 +67,6 @@ wss.on('connection', socket => {
   });
 });
 
-server.listen(8080);
+server.listen(8080, () => {
+  console.log('Server listening on http://localhost:8080');
+});
